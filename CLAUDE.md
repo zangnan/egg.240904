@@ -47,6 +47,10 @@ npm run cov    # 运行带覆盖率的测试
 - JWT token 通过 `AccessToken` header 传递（不是 Authorization Bearer）
 - 静态文件从 `/public/` 目录提供，前缀为 `/static/`
 
+### 代码提交规范
+- **不要自动提交推送代码**，完成功能后等待用户确认再提交
+- 除非用户明确要求，不要在完成功能时自动执行 git commit 和 git push
+
 ### 请求/响应验证
 `app/contract/` 中的 contract 定义验证模式。响应格式：
 ```json
