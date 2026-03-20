@@ -39,4 +39,14 @@ module.exports = app => {
   // router.post('/dict/automatic/exp/bs/getCodeList', controller.sdp.getCodeList);                             // openapi 获取码表
   // router.post('/dict/automatic/exp/bs/queryPager/:moduleKey', controller.sdp.baseList2);                     // openapi 分页查询
   // router.post('/dict/automatic/exp/bs/queryPagerCustomer/:moduleKey____sqlKey', controller.sdp.baseList2c);  // openapi 分页查询 自定义SQL
+  // API 日志分析
+  router.post('/api/analysis/overview', controller.apiAnalysis.getOverview);
+  router.post('/api/analysis/trend', controller.apiAnalysis.getTrend);
+  router.post('/api/analysis/byInterface', controller.apiAnalysis.getByInterface);
+  router.post('/api/analysis/byUser', controller.apiAnalysis.getByUser);
+  router.post('/api/analysis/byStatusCode', controller.apiAnalysis.getByStatusCode);
+  router.post('/api/analysis/byIp', controller.apiAnalysis.getByIp);
+  router.post('/api/analysis/performance', controller.apiAnalysis.getPerformance);
+  router.post('/api/analysis/hourly', controller.apiAnalysis.getHourly);
+  router.post('/api/analysis/logs', controller.apiAnalysis.getLogs);
 };

@@ -41,6 +41,7 @@ npm run cov    # 运行带覆盖率的测试
 
 ### API 模式
 - 路由在 `app/router.js` 中定义
+- **所有新接口开发统一采用 POST 方法**
 - 注释的路由表示 "node server" (ns) CRUD 模式，使用 moduleKey
 - Swagger UI 访问地址：`/swagger-ui.html`
 - JWT token 通过 `AccessToken` header 传递（不是 Authorization Bearer）
