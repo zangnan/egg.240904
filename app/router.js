@@ -48,5 +48,4 @@ module.exports = app => {
   router.post('/api/analysis/byIp', controller.apiAnalysis.getByIp);
   router.post('/api/analysis/performance', controller.apiAnalysis.getPerformance);
   router.post('/api/analysis/hourly', controller.apiAnalysis.getHourly);
-  router.post('/api/analysis/logs', controller.apiAnalysis.getLogs);
 };

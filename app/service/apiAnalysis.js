@@ -395,48 +395,6 @@ class ApiAnalysisService extends Service {
       peakHour: { hour: peakHour.hour, count: peakHour.count },
     };
   }
-
-  /**
-   * 9. 详细日志列表
-   */
-  async getLogs(startDate, endDate, page = 1, pageSize = 20) {
-    const { condition, params } = this.buildDateCondition(startDate, endDate);
-
-    const offset = (page - 1) * pageSize;
-
-    // 总数
-    const countSql = `SELECT COUNT(*) as total FROM sys_api_log WHERE 1=1 ${condition}`;
-    const countResult = await this.app.mysql.query(countSql, params);
-    const total = countResult[0].total;
-
-    // 分页数据
-    const sql = `
-      SELECT
-        start_time as requestTime,
-        request_url as requestUrl,
-        request_header as requestHeader,
-        response_code as responseCode,
-        used_time as responseTime,
-        user_id,
-        ip_address as ipAddress,
-        user_agent as userAgent,
-        api_type as apiType,
-        api_remark as apiRemark
-      FROM sys_api_log
-      WHERE 1=1 ${condition}
-      ORDER BY start_time DESC
-      LIMIT ? OFFSET ?
-    `;
-    const result = await this.app.mysql.query(sql, [...params, Number(pageSize), offset]);
-
-    return {
-      list: result,
-      total,
-      page: Number(page),
-      pageSize: Number(pageSize),
-      totalPages: Math.ceil(total / pageSize),
-    };
-  }
 }
 
 module.exports = ApiAnalysisService;

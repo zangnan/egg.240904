@@ -251,38 +251,6 @@ class ApiAnalysisController extends Controller {
       ctx.status = 500;
     }
   }
-
-  /**
-   * @summary 详细日志列表
-   * @description 分页查询详细日志
-   * @router post /api/analysis/logs
-   * @request query string startDate 开始日期 (YYYY-MM-DD)
-   * @request query string endDate 结束日期 (YYYY-MM-DD)
-   * @request query number page 页码 (默认1)
-   * @request query number pageSize 每页条数 (默认20)
-   * @response 200 baseResponse
-   */
-  async getLogs() {
-    const { ctx } = this;
-    const { startDate, endDate, page = 1, pageSize = 20 } = ctx.request.body;
-
-    try {
-      const result = await ctx.service.apiAnalysis.getLogs(startDate, endDate, Number(page), Number(pageSize));
-      ctx.body = {
-        code: '200',
-        msg: 'success',
-        body: result,
-      };
-      ctx.status = 200;
-    } catch (err) {
-      ctx.body = {
-        code: '500',
-        msg: err.message,
-        body: null,
-      };
-      ctx.status = 500;
-    }
-  }
 }
 
 module.exports = ApiAnalysisController;
