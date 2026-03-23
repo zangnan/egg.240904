@@ -6,6 +6,8 @@ class AppLogService extends Service {
 
   /**
    * 构建日期范围条件
+   * @param startDate
+   * @param endDate
    */
   buildDateCondition(startDate, endDate) {
     let condition = '';
@@ -24,6 +26,8 @@ class AppLogService extends Service {
   /**
    * 1. 概览仪表盘
    * 默认查询近7天数据
+   * @param startDate
+   * @param endDate
    */
   async getOverview(startDate, endDate) {
     // 默认近7天
@@ -47,7 +51,7 @@ class AppLogService extends Service {
     const todayCondition = condition + ' AND DATE(start_time) = ?';
     const todayResult = await this.app.mysql.query(
       `SELECT COUNT(*) as total FROM sys_app_log WHERE 1=1 ${todayCondition}`,
-      [...params, today]
+      [ ...params, today ]
     );
     const todayCount = todayResult[0].total;
 
@@ -109,6 +113,8 @@ class AppLogService extends Service {
 
   /**
    * 2. 级别分布
+   * @param startDate
+   * @param endDate
    */
   async getLevelDistribution(startDate, endDate) {
     const { condition, params } = this.buildDateCondition(startDate, endDate);
@@ -135,11 +141,15 @@ class AppLogService extends Service {
 
   /**
    * 3. 趋势分析
+   * @param startDate
+   * @param endDate
+   * @param type
    */
   async getTrend(startDate, endDate, type = 'daily') {
     const { condition, params } = this.buildDateCondition(startDate, endDate);
 
-    let dateFormat, groupFormat;
+    let dateFormat,
+      groupFormat;
     if (type === 'hourly') {
       dateFormat = '%Y-%m-%d %H:00';
       groupFormat = '%Y-%m-%d %H';
@@ -176,6 +186,9 @@ class AppLogService extends Service {
   /**
    * 4. 错误码统计
    * error_code 为空或 null 单独统计为一组
+   * @param startDate
+   * @param endDate
+   * @param limit
    */
   async getErrorCodes(startDate, endDate, limit = 10) {
     const { condition, params } = this.buildDateCondition(startDate, endDate);
@@ -193,7 +206,7 @@ class AppLogService extends Service {
       ORDER BY count DESC
       LIMIT ?
     `;
-    const result = await this.app.mysql.query(sql, [...params, limit]);
+    const result = await this.app.mysql.query(sql, [ ...params, limit ]);
 
     return result.map(r => ({
       errorCode: r.error_code,
@@ -206,6 +219,10 @@ class AppLogService extends Service {
   /**
    * 5. 来源分布 - 按 IP
    * IP 为空或 null 单独统计为一组
+   * @param startDate
+   * @param endDate
+   * @param level
+   * @param limit
    */
   async getByIp(startDate, endDate, level, limit = 10) {
     const { condition, params } = this.buildDateCondition(startDate, endDate);
@@ -225,10 +242,10 @@ class AppLogService extends Service {
       FROM sys_app_log
       WHERE 1=1 ${condition} ${levelCondition}
       GROUP BY IFNULL(NULLIF(ip_address, ''), 'UNKNOWN')
-      ORDER BY totalCount DESC
+      ORDER BY errorCount DESC
       LIMIT ?
     `;
-    const result = await this.app.mysql.query(sql, [...params, limit]);
+    const result = await this.app.mysql.query(sql, [ ...params, limit ]);
 
     return result.map(r => ({
       ip: r.ip,
@@ -242,6 +259,10 @@ class AppLogService extends Service {
   /**
    * 6. 来源分布 - 按 URL
    * URL 为空或 null 单独统计为一组
+   * @param startDate
+   * @param endDate
+   * @param level
+   * @param limit
    */
   async getByUrl(startDate, endDate, level, limit = 10) {
     const { condition, params } = this.buildDateCondition(startDate, endDate);
@@ -260,10 +281,10 @@ class AppLogService extends Service {
       FROM sys_app_log
       WHERE 1=1 ${condition} ${levelCondition}
       GROUP BY IFNULL(NULLIF(request_url, ''), 'UNKNOWN')
-      ORDER BY totalCount DESC
+      ORDER BY errorCount DESC
       LIMIT ?
     `;
-    const result = await this.app.mysql.query(sql, [...params, limit]);
+    const result = await this.app.mysql.query(sql, [ ...params, limit ]);
 
     return result.map(r => ({
       url: r.url,
@@ -275,6 +296,8 @@ class AppLogService extends Service {
 
   /**
    * 7. 24小时分布
+   * @param startDate
+   * @param endDate
    */
   async getHourlyDistribution(startDate, endDate) {
     const { condition, params } = this.buildDateCondition(startDate, endDate);
@@ -323,6 +346,8 @@ class AppLogService extends Service {
 
   /**
    * 8. 星期分布
+   * @param startDate
+   * @param endDate
    */
   async getWeeklyDistribution(startDate, endDate) {
     const { condition, params } = this.buildDateCondition(startDate, endDate);
@@ -340,7 +365,7 @@ class AppLogService extends Service {
     `;
     const result = await this.app.mysql.query(sql, params);
 
-    const dayNames = ['', '周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    const dayNames = [ '', '周日', '周一', '周二', '周三', '周四', '周五', '周六' ];
     const dayOfWeekMap = {};
     result.forEach(r => {
       dayOfWeekMap[r.dayOfWeek] = r;
