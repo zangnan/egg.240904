@@ -48,4 +48,13 @@ module.exports = app => {
   router.post('/api/analysis/byIp', controller.apiAnalysis.getByIp);
   router.post('/api/analysis/performance', controller.apiAnalysis.getPerformance);
   router.post('/api/analysis/hourly', controller.apiAnalysis.getHourly);
+  // 应用日志分析
+  router.post('/api/appLog/overview', controller.appLog.getOverview);
+  router.post('/api/appLog/levelDistribution', controller.appLog.getLevelDistribution);
+  router.post('/api/appLog/trend', controller.appLog.getTrend);
+  router.post('/api/appLog/errorCodes', controller.appLog.getErrorCodes);
+  router.post('/api/appLog/byIp', controller.appLog.getByIp);
+  router.post('/api/appLog/byUrl', controller.appLog.getByUrl);
+  router.post('/api/appLog/hourlyDistribution', controller.appLog.getHourlyDistribution);
+  router.post('/api/appLog/weeklyDistribution', controller.appLog.getWeeklyDistribution);
 };
