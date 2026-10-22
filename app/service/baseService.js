@@ -1210,7 +1210,10 @@ class BaseService extends Service {
 
   // 判断表是否存在
   async tableIsExist(tableObj) {
-    const dbName = 'qucik_dev';
+    // 库名必须跟随 mysql 配置，不能写死：写死旧库名会查到不存在的 schema，
+    // 永远判定「表不存在」→ 跳过 DROP → create table 撞上已存在的表 → MySQL 1050
+    // （前端最终只看到 E900231「创建表多表执行异常」）
+    const dbName = this.app.config.mysql.client.database;
     let tmpSql = 'select count(*) as tablenum from information_schema.tables ';
     tmpSql += `where (table_schema='${dbName}') AND (table_name='${tableObj.table_name_eng}');`;
     const isExcitRes = await this.app.mysql.query(tmpSql);
@@ -1254,7 +1257,15 @@ class BaseService extends Service {
       sql_create_table += `create table ${table_name_eng} (`;
       tableObj.table_cols.forEach((col, index) => {
         const isNotNull = tableObj.f_not_null === 'Y' ? 'not null' : '';
-        const defaultValue = col.f_default_value ? `default ${col.f_default_value || ''}` : 'default null';
+        // 主键列绝不能带 DEFAULT NULL：显式可空与主键冲突，MySQL 直接报
+        //   ER_PRIMARY_CANT_HAVE_NULL (1171)
+        //   All parts of a PRIMARY KEY must be NOT NULL; if you need NULL in a key, use UNIQUE instead
+        // 这正是「初始化永远卡在第一张表 sys_user」的真因（实测确认）。
+        // 模板里主键列都标了「非空=Y」，本意就是靠 not null 躲开它，但上面的
+        //   tableObj.f_not_null 是表级字段、永远取不到值，所以这里再兜一层：主键不写 default。
+        const defaultValue = col.f_default_value
+          ? `default ${col.f_default_value}`
+          : (col.f_key === 'p_key' ? '' : 'default null');
         if (col.f_key === 'p_key') { // 'p_key'
           // primary_key = col.f_name;
           primary_key.push(col.f_name);
@@ -1278,7 +1289,11 @@ class BaseService extends Service {
       //   table: table_name_eng,
       //   code: '9001',
       // });
-      throw new AppError('创建表单表执行异常', `createTable: ${err.name}`, 'E900221', err);
+      // 把驱动层的真实错误与出错的表名写进 message：
+      // 外层 createTables 会再包一层 AppError，而 handleErrorCommon 只回传「一层」cause，
+      // 不这样做的话，前端永远只能看到「创建表单表执行异常」这句无信息量的话。
+      const detail = `${err.code || err.name || ''} ${err.sqlMessage || err.message || ''}`.trim();
+      throw new AppError(`创建表【${table_name_eng}】失败：${detail}`, `createTable: ${err.name}`, 'E900221', err);
     }
     return msgCreateTable;
   }
@@ -1422,7 +1437,9 @@ class BaseService extends Service {
       //     table: tableName,
       //     code: '9004',
       //   });
-        throw new AppError('初始化数据清空表数据执行异常', `clearTableData: ${err.name}`, 'E900212', err);
+        // 同上：把真实错误与表名拼进 message，穿透两层 AppError 包装。
+        const detail = `${err.code || err.name || ''} ${err.sqlMessage || err.message || ''}`.trim();
+        throw new AppError(`清空表【${table_name_eng}】失败：${detail}`, `clearTableData: ${err.name}`, 'E900212', err);
       }
     }
     return returnMsg;
@@ -1454,7 +1471,10 @@ class BaseService extends Service {
         //   table: tableName,
         //   code: '9002',
         // });
-        throw new AppError('初始化数据插入表数据执行异常', `clearTableData: ${err.name}`, 'E900213', err);
+        // 同 createTable：外层 initDbData 还会再包一层 AppError，而 handleErrorCommon
+        // 只回传「一层」cause，不把真实错误拼进 message 就永远只能看到「初始化数据插入表数据执行异常」。
+        const detail = `${err.code || err.name || ''} ${err.sqlMessage || err.message || ''}`.trim();
+        throw new AppError(`导入数据【${table_name_eng}】失败：${detail}`, `initDbDataInsert: ${err.name}`, 'E900213', err);
       }
     }
     return returnMsg;
